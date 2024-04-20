@@ -1,5 +1,11 @@
+import Dropzone from "@/components/Dropzone";
+
 const page = () => {
-  return <div>Dashboard</div>;
+  return (
+    <div>
+      <Dropzone />
+    </div>
+  );
 };
 
 export default page;

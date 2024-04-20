@@ -23,7 +23,7 @@ const Header = () => {
         <ThemeToggler />
         <UserButton afterSignOutUrl="/" />
         <SignedOut>
-          <SignInButton mode="modal" />
+          <SignInButton mode="modal" signUpFallbackRedirectUrl="/dashboard" />
         </SignedOut>
       </div>
     </header>
