@@ -1,17 +1,70 @@
 "use client";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import DropzoneComponent from "react-dropzone";
+import { useUser } from "@clerk/nextjs";
+import {
+  addDoc,
+  collection,
+  doc,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
+import { db, storage } from "@/config/firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 function Dropzone() {
   // max file size 20 MB
-  const maxSize = 20971520;
 
+  const [loading, setLoading] = useState(false);
+  const { user, isSignedIn, isLoaded } = useUser();
+
+  const onDrop = (acceptedFiles: File[]) => {
+    acceptedFiles.forEach((file) => {
+      const reader = new FileReader();
+
+      reader.onabort = () => console.log("file reading was aborted");
+      reader.onerror = () => console.log("file reading has failed");
+
+      reader.onload = async () => {
+        await uploadFile(file);
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const uploadFile = async (selectedFile: File) => {
+    if (loading) return;
+    if (!user) return;
+
+    setLoading(true);
+
+    const docRef = await addDoc(collection(db, "users", user.id, "files"), {
+      userId: user.id,
+      fileName: selectedFile.name,
+      fullName: user.fullName,
+      profileImg: user.imageUrl,
+      timeStamp: serverTimestamp(),
+      type: selectedFile.type,
+      size: selectedFile.size,
+    });
+
+    const fileRef = ref(storage, `users/${user.id}/files/${docRef.id}`);
+
+    uploadBytes(fileRef, selectedFile).then(async () => {
+      const downloadURL = await getDownloadURL(fileRef);
+
+      await updateDoc(doc(db, "users", user.id, "files", docRef.id), {
+        downloadURL: downloadURL,
+      });
+    });
+
+    setLoading(false);
+  };
+  const maxSize = 20971520;
   return (
-    <DropzoneComponent
-      maxSize={maxSize}
-      minSize={0}
-      onDrop={(acceptedFiles) => console.log(acceptedFiles)}
-    >
+    <DropzoneComponent maxSize={maxSize} minSize={0} onDrop={onDrop}>
       {({
         getRootProps,
         getInputProps,
