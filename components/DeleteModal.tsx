@@ -2,13 +2,10 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { storage, db } from "@/config/firebase";
 import { useAppStore } from "@/store/store";
@@ -17,13 +14,13 @@ import { doc, deleteDoc } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
 
 export function DeleteModal() {
-  const [fileId, setFileId, isDeleteModalOpen, setIsDeleteModalOpen] =
-    useAppStore((state) => [
+  const [fileId, isDeleteModalOpen, setIsDeleteModalOpen] = useAppStore(
+    (state) => [
       state.fileId,
-      state.setFileId,
       state.isDeleteModalOpen,
       state.setIsDeleteModalOpen,
-    ]);
+    ]
+  );
 
   const { user } = useUser();
 

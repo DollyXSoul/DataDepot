@@ -17,9 +17,10 @@ import {
 } from "@/components/ui/table";
 import { Button } from "../ui/button";
 import { FileType } from "@/types";
-import { TrashIcon } from "lucide-react";
+import { PencilIcon, TrashIcon } from "lucide-react";
 import { useAppStore } from "@/store/store";
 import { DeleteModal } from "../DeleteModal";
+import { RenameModal } from "../RenameModal";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -36,14 +37,23 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const [setFileId, setIsDeleteModalOpen] = useAppStore((state) => [
-    state.setFileId,
-    state.setIsDeleteModalOpen,
-  ]);
+  const [setFileId, setIsDeleteModalOpen, setFilename, setIsRenameModalOpen] =
+    useAppStore((state) => [
+      state.setFileId,
+      state.setIsDeleteModalOpen,
+      state.setFilename,
+      state.setIsRenameModalOpen,
+    ]);
 
   const openDeleteModal = (fileId: string) => {
     setFileId(fileId);
     setIsDeleteModalOpen(true);
+  };
+
+  const openRenameModal = (fileId: string, filename: string) => {
+    setFileId(fileId);
+    setFilename(filename);
+    setIsRenameModalOpen(true);
   };
 
   return (
@@ -68,6 +78,7 @@ export function DataTable<TData, TValue>({
           ))}
         </TableHeader>
         <DeleteModal />
+        <RenameModal />
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
@@ -86,10 +97,22 @@ export function DataTable<TData, TValue>({
                           {(cell.getValue() as Date).toLocaleTimeString()}
                         </div>
                       </div>
+                    ) : cell.column.id === "fileName" ? (
+                      <p
+                        onClick={() => {
+                          openRenameModal(
+                            (row.original as FileType).id,
+                            (row.original as FileType).fileName
+                          );
+                        }}
+                        className=" underline flex items-center text-blue-500 hover:cursor-pointer"
+                      >
+                        {cell.getValue() as string}
+                        <PencilIcon size={15} className="ml-2" />
+                      </p>
                     ) : (
                       flexRender(cell.column.columnDef.cell, cell.getContext())
                     )}
-                    {}
                   </TableCell>
                 ))}
                 <TableCell key={(row.original as FileType).id}>
