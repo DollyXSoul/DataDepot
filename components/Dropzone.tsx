@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { db, storage } from "@/config/firebase";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import toast from "react-hot-toast";
 
 function Dropzone() {
   // max file size 20 MB
@@ -36,29 +37,47 @@ function Dropzone() {
 
   const uploadFile = async (selectedFile: File) => {
     if (loading) return;
-    if (!user) return;
+
+    if (!user) {
+      toast.error("An error occured!!");
+      return;
+    }
 
     setLoading(true);
 
-    const docRef = await addDoc(collection(db, "users", user.id, "files"), {
-      userId: user.id,
-      fileName: selectedFile.name,
-      fullName: user.fullName,
-      profileImg: user.imageUrl,
-      timeStamp: serverTimestamp(),
-      type: selectedFile.type,
-      size: selectedFile.size,
-    });
+    const toastId = toast.loading("Uploading file");
 
-    const fileRef = ref(storage, `users/${user.id}/files/${docRef.id}`);
-
-    uploadBytes(fileRef, selectedFile).then(async () => {
-      const downloadURL = await getDownloadURL(fileRef);
-
-      await updateDoc(doc(db, "users", user.id, "files", docRef.id), {
-        downloadURL: downloadURL,
+    try {
+      const docRef = await addDoc(collection(db, "users", user.id, "files"), {
+        userId: user.id,
+        fileName: selectedFile.name,
+        fullName: user.fullName,
+        profileImg: user.imageUrl,
+        timeStamp: serverTimestamp(),
+        type: selectedFile.type,
+        size: selectedFile.size,
       });
-    });
+
+      const fileRef = ref(storage, `users/${user.id}/files/${docRef.id}`);
+
+      uploadBytes(fileRef, selectedFile).then(async () => {
+        const downloadURL = await getDownloadURL(fileRef);
+
+        await updateDoc(doc(db, "users", user.id, "files", docRef.id), {
+          downloadURL: downloadURL,
+        });
+      });
+
+      toast.success("Uploaded Successfully", {
+        id: toastId,
+        duration: 1500,
+      });
+    } catch (error) {
+      toast.error("An error occurred ! Try again", {
+        id: toastId,
+        duration: 1500,
+      });
+    }
 
     setLoading(false);
   };

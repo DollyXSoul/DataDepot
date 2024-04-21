@@ -2,18 +2,16 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { db } from "@/config/firebase";
 import { useAppStore } from "@/store/store";
 import { useUser } from "@clerk/nextjs";
 import { doc, updateDoc } from "firebase/firestore";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export function RenameModal() {
   const [fileId, fileName, isRenameModalOpen, setIsRenameModalOpen] =
@@ -28,11 +26,29 @@ export function RenameModal() {
   const [input, setInput] = useState<string>("");
 
   const renameFile = async () => {
-    if (!user || !fileId) return;
+    const toastId = toast.loading("Renaming...");
 
-    await updateDoc(doc(db, "users", user.id, "files", fileId), {
-      fileName: input,
-    });
+    if (!user || !fileId) {
+      toast.error("An error occured! Try again", {
+        id: toastId,
+      });
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, "users", user.id, "files", fileId), {
+        fileName: input,
+      });
+
+      toast.success("Renamed successfully", {
+        id: toastId,
+        duration: 1500,
+      });
+    } catch (err) {
+      toast.error("An error occured! Try again", {
+        id: toastId,
+      });
+    }
 
     setInput("");
     setIsRenameModalOpen(false);
