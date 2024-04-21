@@ -15,7 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { timeStamp } from "console";
+import { Button } from "../ui/button";
+import { FileType } from "@/types";
+import { TrashIcon } from "lucide-react";
+import { useAppStore } from "@/store/store";
+import { DeleteModal } from "../DeleteModal";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -31,6 +35,16 @@ export function DataTable<TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  const [setFileId, setIsDeleteModalOpen] = useAppStore((state) => [
+    state.setFileId,
+    state.setIsDeleteModalOpen,
+  ]);
+
+  const openDeleteModal = (fileId: string) => {
+    setFileId(fileId);
+    setIsDeleteModalOpen(true);
+  };
 
   return (
     <div className="rounded-md border">
@@ -53,6 +67,7 @@ export function DataTable<TData, TValue>({
             </TableRow>
           ))}
         </TableHeader>
+        <DeleteModal />
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
@@ -77,6 +92,16 @@ export function DataTable<TData, TValue>({
                     {}
                   </TableCell>
                 ))}
+                <TableCell key={(row.original as FileType).id}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      openDeleteModal((row.original as FileType).id);
+                    }}
+                  >
+                    <TrashIcon size={20} />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))
           ) : (
