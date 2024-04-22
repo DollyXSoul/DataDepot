@@ -30,7 +30,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" className={` ${poppins.variable}`}>
-        <body className={inter.className}>
+        <body className={`bg-slate-100 dark:bg-zinc-950 ${inter.className}`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
